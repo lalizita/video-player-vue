@@ -6,13 +6,13 @@
       @loadedmetadata="updateVideoDetails"
       @timeupdate="updateVideoDetails"
     >
-      <source src="___SEU__VIDEO__" />
+      <source src="../assets/video.mp4" />
     </video>
     <!--controls-->
     <div class="video__controls">
       <button class="video__controls__button" @click.stop="toggleVideoPlay">
-        <v-icon v-if="isPlaying">mdi-pause</v-icon>
-        <v-icon v-else>mdi-play</v-icon>
+        <v-icon style="color: #fff" v-if="isPlaying">mdi-pause</v-icon>
+        <v-icon style="color: #fff" v-else>mdi-play</v-icon>
       </button>
       <div class="video__controls__volume">
         <button
@@ -45,7 +45,7 @@
                 bottom: `Calc(${volume * 100}% - 0.25rem)`,
               }"
               draggable
-              @drag.stop.prevent="handleVolumeOnDrag"
+              @dragend.stop="handleVolumeOnDrag"
             />
           </div>
         </div>
@@ -111,8 +111,7 @@ export default {
     },
     handleVolumeClick(event) {
       const volume = this.$refs.videoVolumeTrack;
-      const currentVolume = 1 - event.layerY / volume.offsetHeight;
-
+      const currentVolume = (volume.getBoundingClientRect().top - event.pageY + volume.offsetHeight) / 100;
       if (currentVolume > 1) {
         this.volume = currentVolume;
         this.$refs.videoPlayer.volume = 1;
@@ -126,9 +125,9 @@ export default {
     },
     handleVolumeOnDrag(event) {
       const volume = this.$refs.videoVolumeTrack;
-      console.log({ event });
-      const currentVolume = 1 - event.offsetY / volume.offsetHeight;
-
+      const currentVolume = (volume.getBoundingClientRect().top - event.pageY + volume.offsetHeight) / 100;
+      // const currentVolume =  event.layerY - volume.getBoundingClientRect().bottom;
+      console.log({ currentVolume });
       if (currentVolume > 1) {
         this.volume = currentVolume;
         this.$refs.videoPlayer.volume = 1;
