@@ -45,7 +45,9 @@
                 bottom: `Calc(${volume * 100}% - 0.25rem)`,
               }"
               draggable
-              @dragend.stop="handleVolumeOnDrag"
+              @drop.prevent.stop=""
+              @dragstart.prevent.stop="handleVolumeOnDrag"
+              @dragend.prevent.stop="handleVolumeOnDrag"
             />
           </div>
         </div>
@@ -125,18 +127,20 @@ export default {
     },
     handleVolumeOnDrag(event) {
       const volume = this.$refs.videoVolumeTrack;
-      const currentVolume = (volume.getBoundingClientRect().top - event.pageY + volume.offsetHeight) / 100;
-      // const currentVolume =  event.layerY - volume.getBoundingClientRect().bottom;
-      console.log({ currentVolume });
-      if (currentVolume > 1) {
-        this.volume = currentVolume;
-        this.$refs.videoPlayer.volume = 1;
-      } else if (currentVolume < 0) {
-        this.volume = currentVolume;
-        this.$refs.videoPlayer.volume = 0;
-      } else {
-        this.volume = currentVolume;
-        this.$refs.videoPlayer.volume = currentVolume;
+      if(event.x != 0 && event.y !== 0){
+        const currentVolume = (volume.getBoundingClientRect().top - event.pageY + volume.offsetHeight) / 100;
+        // const currentVolume =  event.layerY - volume.getBoundingClientRect().bottom;
+        console.log(event);
+        if (currentVolume > 1) {
+          this.volume = currentVolume;
+          this.$refs.videoPlayer.volume = 1;
+        } else if (currentVolume < 0) {
+          this.volume = currentVolume;
+          this.$refs.videoPlayer.volume = 0;
+        } else {
+          this.volume = currentVolume;
+          this.$refs.videoPlayer.volume = currentVolume;
+        }
       }
     },
     updateVideoDetails() {
