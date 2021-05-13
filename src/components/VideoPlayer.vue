@@ -29,7 +29,7 @@
             >mdi-volume-high</v-icon
           >
         </button>
-        <div
+        <!-- <div
           class="video__controls__volume--options"
           ref="videoVolumeTrack"
           @click.stop="handleVolumeClick"
@@ -48,6 +48,9 @@
               @dragend.stop="handleVolumeOnDrag"
             />
           </div>
+        </div> -->
+        <div class="video__controls__volume--options">
+          <input v-model="volumee" type="range" min="0.0" max="1.0" step="0.25" @change="changeVolume"/>
         </div>
       </div>
       <div class="video__controls__duration">
@@ -84,6 +87,7 @@ export default {
     isPlaying: false,
     duration: 0,
     currentTime: 0,
+    volumee:0
   }),
   computed: {
     currentTimeFormatted() {
@@ -109,6 +113,9 @@ export default {
         this.$refs.videoPlayer.pause();
       }
     },
+    changeVolume(event){
+      console.log(event)
+    },
     handleVolumeClick(event) {
       const volume = this.$refs.videoVolumeTrack;
       const currentVolume = (volume.getBoundingClientRect().top - event.pageY + volume.offsetHeight) / 100;
@@ -126,8 +133,7 @@ export default {
     handleVolumeOnDrag(event) {
       const volume = this.$refs.videoVolumeTrack;
       const currentVolume = (volume.getBoundingClientRect().top - event.pageY + volume.offsetHeight) / 100;
-      // const currentVolume =  event.layerY - volume.getBoundingClientRect().bottom;
-      console.log({ currentVolume });
+
       if (currentVolume > 1) {
         this.volume = currentVolume;
         this.$refs.videoPlayer.volume = 1;
@@ -149,11 +155,11 @@ export default {
       let hours = Math.floor(num / 3600);
       let minutes = Math.floor((num % 3600) / 60);
       let seconds = Math.floor(num % 60);
-      // Add leading zero if needed
+
       hours = hours < 10 ? "0" + hours : hours;
       minutes = minutes < 10 ? "0" + minutes : minutes;
       seconds = seconds < 10 ? "0" + seconds : seconds;
-      // If hours > 0, return string with hours prepended
+
       if (hours > 0) {
         return hours + ":" + minutes + ":" + seconds;
       }
@@ -167,7 +173,6 @@ export default {
       this.$refs.videoPlayer.currentTime = currentTime;
     },
     handleTrackOnDrag(event) {
-      console.log("DRAG EVENT");
       if (event.x !== 0 && event.y !== 0) {
         const track = this.$refs.videoPlayerTrack;
         if (track) {
@@ -224,13 +229,51 @@ export default {
   position: relative;
 }
 
-.video__controls__volume--options {
+/* .video__controls__volume--options {
   position: absolute;
   height: 100px;
   padding: 5px;
   top: -110px;
   background: rgba(0, 0, 0, 0.75);
   border-radius: 0.25rem;
+} */
+
+.video__controls__volume--options {
+  /* transform: rotateX(180deg); */
+}
+
+.video__controls__volume--options input{
+  -webkit-appearance: none;
+  width: 100px;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 0.25rem;
+  outline: none;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+  cursor: pointer;
+}
+
+.video__controls__volume--options input::-webkit-slider-thumb{
+/* .video__controls__volume--options input::-moz-range-thumb,
+.video__controls__volume--options input::-ms-thumb{ */
+  -webkit-appearance: none;
+  appearance: none;
+  width: 4px;
+  height: 8px;
+  background: #04AA6D;
+  cursor: pointer;
+}
+
+.video__controls__volume--options input::-webkit-slider-runnable-track  {
+  width: 100%;
+  height: 4px;
+  background: #f17;
+}
+
+.video__controls__volume--options input::-ms-fill-lower {
+  width: 100%;
+  height: 4px;
+  background: #ccc;
 }
 
 .video__controls__volume--track {
