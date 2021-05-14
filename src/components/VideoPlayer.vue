@@ -73,6 +73,21 @@
           ></div>
         </div>
       </div>
+      <div class="video__controls__speed">
+         <button
+          ref="speed"
+        >
+          {{speed}}
+        </button>
+        <div class="video__controls__speed__options">
+          <div @click.stop="handleVideoPlaybackRate(2.0)">2x</div>
+          <div @click.stop="handleVideoPlaybackRate(1.75)">1.75x</div>
+          <div @click.stop="handleVideoPlaybackRate(1.5)">1.5x</div>
+          <div @click.stop="handleVideoPlaybackRate(1.0)">1x</div>
+          <div @click.stop="handleVideoPlaybackRate(0.75)">0.75x</div>
+          <div @click.stop="handleVideoPlaybackRate(0.5)">0.5x</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -86,6 +101,7 @@ export default {
     isPlaying: false,
     duration: 0,
     currentTime: 0,
+    speed:1,
   }),
   computed: {
     currentTimeFormatted() {
@@ -171,7 +187,6 @@ export default {
       this.$refs.videoPlayer.currentTime = currentTime;
     },
     handleTrackOnDrag(event) {
-      console.log("DRAG EVENT");
       if (event.x !== 0 && event.y !== 0) {
         const track = this.$refs.videoPlayerTrack;
         if (track) {
@@ -188,6 +203,11 @@ export default {
         }
       }
     },
+    handleVideoPlaybackRate(speed){
+      console.log({speed})
+      this.speed = `${speed}x`
+      this.$refs.videoPlayer.playbackRate = speed
+    }
   },
 };
 </script>
@@ -295,5 +315,28 @@ export default {
   position: absolute;
   left: 0;
   bottom: -0.5rem;
+}
+
+.video__controls__speed{
+  position: relative;
+  min-width:60px;
+  padding: 0px 15px;
+}
+
+.video__controls__speed__options{
+  position: absolute;
+  left:0;
+  top: -220px;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 0.25rem;
+}
+.video__controls__speed__options div{
+  padding: 5px;
+}
+
+.video__controls__speed__options div:hover{
+  background: rgba(255, 255, 255, 0.35);
+  padding: 5px;
+  color:#000;
 }
 </style>
