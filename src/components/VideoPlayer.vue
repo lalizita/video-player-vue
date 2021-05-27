@@ -1,6 +1,16 @@
 <template>
-  <div class="video__container" @click="toggleVideoPlay">
-    <div v-if="spinner" style="front-size: 30px; color: #fff">CARREGANDO</div>
+  <div
+    class="video__container"
+    @click="toggleVideoPlay"
+    @mouseover="handleShowFunctions"
+    @mouseleave="setTimeoutFunction"
+  >
+    <div v-if="spinner">
+      <v-progress-circular
+        indeterminate
+        color="var(--primary-color)"
+      ></v-progress-circular>
+    </div>
     <video
       ref="videoPlayer"
       class="video__player"
@@ -14,7 +24,10 @@
     </video>
     <!--controls-->
     <div class="video__controls">
-      <div class="video__controls__progress__container">
+      <div
+        class="video__controls__progress__container"
+        :style="`margin-bottom:${showFunctions ? '20px' : '0'}`"
+      >
         <div
           ref="videoPlayerTrack"
           class="video__controls__progress"
@@ -33,7 +46,7 @@
           </div>
         </div>
       </div>
-      <div class="video__controls__functions">
+      <div v-if="showFunctions" class="video__controls__functions">
         <div>
           <button class="video__controls__button" @click.stop="toggleVideoPlay">
             <v-icon style="color: #fff" v-if="isPlaying">mdi-pause</v-icon>
@@ -89,9 +102,7 @@
           <div class="video__controls__speed">
             <button ref="speed" @click.stop="speedOpen = !speedOpen">
               <span>
-                <v-icon style="color: #fff"
-                  >mdi-clock-time-three-outline</v-icon
-                >
+                <v-icon style="color: #fff">mdi-speedometer</v-icon>
               </span>
             </button>
             <div v-if="speedOpen" class="video__controls__speed__options">
@@ -158,6 +169,8 @@ export default {
     speedOpen: false,
     videoSrc: null,
     spinner: true,
+    showFunctions: false,
+    timeout: null,
   }),
   computed: {
     currentTimeFormatted() {
@@ -288,6 +301,17 @@ export default {
         this.speedOpen = false;
       }
     },
+    handleShowFunctions() {
+      this.showFunctions = true;
+    },
+    setTimeoutFunction() {
+      const self = this;
+      setTimeout(() => {
+        self.showFunctions = false;
+        self.speedOpen = false;
+        self.volumeOptionsOpen = false;
+      }, 6000);
+    },
   },
 };
 </script>
@@ -306,11 +330,12 @@ export default {
   position: relative;
   cursor: pointer;
   background: #000;
+  min-width: 600px;
+  min-height: 340px;
+  margin: 0 auto;
 }
 .video__player {
   border-radius: 6px;
-  width: 600px;
-  margin: 0 auto;
 }
 
 .video__player source {
@@ -332,7 +357,6 @@ export default {
 .video__controls__progress__container {
   display: flex;
   width: 100%;
-  margin-bottom: 20px;
 }
 
 .video__controls__functions {
