@@ -5,7 +5,7 @@
     @mouseover="handleShowFunctions"
     @mouseleave="setTimeoutFunction"
   >
-    <div v-if="spinner">
+    <div class="spinner" v-if="spinner">
       <v-progress-circular
         indeterminate
         color="var(--primary-color)"
@@ -17,13 +17,15 @@
       @loadedmetadata="updateVideoDetails"
       @timeupdate="updateVideoDetails"
       :key="videoURL"
+      controlsList="nodownload"
+      onContextMenu="return false;"
       @waiting="spinner = true"
       @canplay="spinner = false"
     >
       <source :src="videoSrc" />
     </video>
     <!--controls-->
-    <div class="video__controls">
+    <div class="video__controls" v-if="showProgressBar">
       <div
         class="video__controls__progress__container"
         :style="`margin-bottom:${showFunctions ? '20px' : '0'}`"
@@ -98,6 +100,14 @@
               </div>
             </div>
           </div>
+          <div>
+            <button @click.stop="toggleFullscreen">
+              <v-icon style="color: #fff" v-if="isFullscreen"
+                >mdi-fullscreen-exit</v-icon
+              >
+              <v-icon style="color: #fff" v-else>mdi-fullscreen</v-icon>
+            </button>
+          </div>
 
           <div class="video__controls__speed">
             <button ref="speed" @click.stop="speedOpen = !speedOpen">
@@ -171,6 +181,8 @@ export default {
     spinner: true,
     showFunctions: false,
     timeout: null,
+    showProgressBar: false,
+    isFullscreen: false,
   }),
   computed: {
     currentTimeFormatted() {
@@ -303,6 +315,7 @@ export default {
     },
     handleShowFunctions() {
       this.showFunctions = true;
+      this.showProgressBar = true;
     },
     setTimeoutFunction() {
       const self = this;
@@ -311,6 +324,35 @@ export default {
         self.speedOpen = false;
         self.volumeOptionsOpen = false;
       }, 6000);
+
+      setTimeout(() => {
+        self.showProgressBar = false;
+      }, 10000);
+    },
+    toggleFullscreen() {
+      const element = this.$refs.videoPlayer;
+
+      if (this.isFullscreen) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      } else if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if (element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+      } else if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+      } else if (element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+      }
+
+      this.isFullscreen = !this.isFullscreen;
     },
   },
 };
@@ -336,6 +378,11 @@ export default {
 }
 .video__player {
   border-radius: 6px;
+}
+
+.spinner {
+  z-index: 2;
+  position: absolute;
 }
 
 .video__player source {
