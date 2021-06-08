@@ -16,24 +16,22 @@
       class="video__player"
       @loadedmetadata="updateVideoDetails"
       @timeupdate="updateVideoDetails"
-      :key="videoURL"
       controlsList="nodownload"
       onContextMenu="return false;"
       @waiting="spinner = true"
       @canplay="spinner = false"
     >
-      <source :src="videoSrc" />
+      <source :src="videoSrc" type="video/mp4" />
     </video>
-    <!--controls-->
     <div class="video__controls" v-if="showProgressBar">
       <div
         class="video__controls__progress__container"
         :style="`margin-bottom:${showFunctions ? '20px' : '0'}`"
       >
         <div
-          ref="videoPlayerTrack"
+          ref="videoPlayerProgress"
           class="video__controls__progress"
-          @click.prevent.stop="handleTrackClick"
+          @click.prevent.stop="handleProgressClick"
         >
           <div
             class="video__controls__progress__track"
@@ -66,13 +64,15 @@
               @click.stop="volumeOptionsOpen = !volumeOptionsOpen"
               ref="volumeTrack"
             >
-              <v-icon v-if="volume === 0" style="color: #fff"
+              <v-icon v-if="volume < 0.1" style="color: #fff"
                 >mdi-volume-low</v-icon
               >
-              <v-icon v-else-if="volume > 0 && volume < 0.9" style="color: #fff"
+              <v-icon
+                v-else-if="volume >= 0.1 && volume < 0.8"
+                style="color: #fff"
                 >mdi-volume-medium</v-icon
               >
-              <v-icon v-else-if="volume >= 9" style="color: #fff"
+              <v-icon v-else-if="volume >= 0.8" style="color: #fff"
                 >mdi-volume-high</v-icon
               >
             </button>
@@ -92,21 +92,9 @@
                   :style="{
                     bottom: `Calc(${volume * 100}% - 0.25rem)`,
                   }"
-                  draggable
-                  @drop.prevent.stop=""
-                  @dragstart.prevent.stop="handleVolumeOnDrag"
-                  @dragend.prevent.stop="handleVolumeOnDrag"
                 />
               </div>
             </div>
-          </div>
-          <div>
-            <button @click.stop="toggleFullscreen">
-              <v-icon style="color: #fff" v-if="isFullscreen"
-                >mdi-fullscreen-exit</v-icon
-              >
-              <v-icon style="color: #fff" v-else>mdi-fullscreen</v-icon>
-            </button>
           </div>
 
           <div class="video__controls__speed">
@@ -170,7 +158,7 @@ export default {
     },
   },
   data: () => ({
-    volumeOptionsOpen: false,
+    volumeOptionsOpen: true,
     volume: 0.3,
     isPlaying: false,
     duration: 0,
@@ -181,8 +169,7 @@ export default {
     spinner: true,
     showFunctions: false,
     timeout: null,
-    showProgressBar: false,
-    isFullscreen: false,
+    showProgressBar: false
   }),
   computed: {
     currentTimeFormatted() {
@@ -227,37 +214,19 @@ export default {
       if (currentVolume > 1) {
         this.volume = currentVolume;
         this.$refs.videoPlayer.volume = 1;
-      } else if (currentVolume < 0) {
-        this.volume = currentVolume;
+      } else if (currentVolume < 0.1) {
+        this.volume = 0;
         this.$refs.videoPlayer.volume = 0;
       } else {
         this.volume = currentVolume;
         this.$refs.videoPlayer.volume = currentVolume;
       }
     },
-    handleVolumeOnDrag(event) {
-      const volume = this.$refs.videoVolumeTrack;
-      if (event.x != 0 && event.y !== 0) {
-        const currentVolume =
-          (volume.getBoundingClientRect().top -
-            event.pageY +
-            volume.offsetHeight) /
-          100;
-        if (currentVolume > 1) {
-          this.volume = currentVolume;
-          this.$refs.videoPlayer.volume = 1;
-        } else if (currentVolume < 0) {
-          this.volume = currentVolume;
-          this.$refs.videoPlayer.volume = 0;
-        } else {
-          this.volume = currentVolume;
-          this.$refs.videoPlayer.volume = currentVolume;
-        }
-      }
-    },
     updateVideoDetails() {
       if (this.$refs.videoPlayer) {
-        this.duration = this.$refs.videoPlayer.duration;
+        if (!Number.isNaN(this.$refs.videoPlayer.duration)) {
+          this.duration = this.$refs.videoPlayer.duration;
+        }
         this.currentTime = this.$refs.videoPlayer.currentTime;
         if (this.$refs?.videoPlayer.paused) {
           this.isPlaying = false;
@@ -272,26 +241,26 @@ export default {
       let hours = Math.floor(num / 3600);
       let minutes = Math.floor((num % 3600) / 60);
       let seconds = Math.floor(num % 60);
-      // Add leading zero if needed
+
       hours = hours < 10 ? "0" + hours : hours;
       minutes = minutes < 10 ? "0" + minutes : minutes;
       seconds = seconds < 10 ? "0" + seconds : seconds;
-      // If hours > 0, return string with hours prepended
+
       if (hours > 0) {
         return hours + ":" + minutes + ":" + seconds;
       }
       return minutes + ":" + seconds;
     },
-    handleTrackClick(event) {
+    handleProgressClick(event) {
       const currentTime =
         (this.duration * event.offsetX) /
-        this.$refs.videoPlayerTrack.offsetWidth;
+        this.$refs.videoPlayerProgress.offsetWidth;
       this.currentTime = currentTime;
       this.$refs.videoPlayer.currentTime = currentTime;
     },
     handleTrackOnDrag(event) {
       if (event.x !== 0 && event.y !== 0) {
-        const track = this.$refs.videoPlayerTrack;
+        const track = this.$refs.videoPlayerProgress;
         if (track) {
           const leftMovement = event.pageX - track.getBoundingClientRect().left;
           let drag = 0;
@@ -328,31 +297,6 @@ export default {
       setTimeout(() => {
         self.showProgressBar = false;
       }, 10000);
-    },
-    toggleFullscreen() {
-      const element = this.$refs.videoPlayer;
-
-      if (this.isFullscreen) {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-          document.mozCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen();
-        }
-      } else if (element.requestFullscreen) {
-        element.requestFullscreen();
-      } else if (element.mozRequestFullScreen) {
-        element.mozRequestFullScreen();
-      } else if (element.webkitRequestFullscreen) {
-        element.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-      } else if (element.msRequestFullscreen) {
-        element.msRequestFullscreen();
-      }
-
-      this.isFullscreen = !this.isFullscreen;
     },
   },
 };
@@ -428,7 +372,7 @@ export default {
 .video__controls__volume--options {
   position: absolute;
   height: 100px;
-  padding: 5px;
+  padding: 5px 8px;
   left: 5px;
   top: var(--top-options);
   background: var(--control-background-color);
@@ -444,7 +388,7 @@ export default {
 }
 
 .video__controls__volume--track-current {
-  background-color: #f17;
+  background-color: var(--primary-color);
   position: absolute;
   bottom: 0;
   left: 0;
@@ -482,7 +426,7 @@ export default {
 }
 
 .video__controls__progress__track {
-  background: #fff;
+  background: var(--primary-color);
   transition: width 0.2ms;
   display: flex;
   height: 0.25rem;
